@@ -1,5 +1,5 @@
 - name: install and configure mongodo server
-  hosts: inventory.ini
+  hosts: mongodb
   become: yes
 
   tasks:
@@ -21,9 +21,9 @@
 
     - name: Allow remote connections
       ansible.builtin.replace:
-      path: /etc/mongod.conf
-      regexp: 'bindIp:\s*\127\.0\.0\.1'
-      replace: 'bindIp 0.0.0.0'
+        path: /etc/mongod.conf
+        regexp: 'bindIp:\s*127\.0\.0\.1'
+        replace: 'bindIp: 0.0.0.0'
 
     - name: Restart service
       ansible.builtin.service:
