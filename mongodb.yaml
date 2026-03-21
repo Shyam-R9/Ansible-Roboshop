@@ -1,0 +1,31 @@
+- name: install and configure mongodo server
+  hosts: inventory.ini
+  become: yes
+
+  tasks:
+    - name: setup mongo repo
+      ansible.builtin.copy:
+        src: mongo.repo
+        dest: /etc/yum.repos.d/mongo.repo
+
+    - name: Install mongodb
+      ansible.builtin.dnf:
+        name: mongodb-org
+        state: present
+    
+    - name: Enable and start the service
+      ansible.builtin.service:
+        name: mongod
+        enabled: true
+        state: started
+
+    - name: Allow remote connections
+      ansible.builtin.replace:
+      path: /etc/mongod.conf
+      regexp: 'bindIp:\s*\127\.0\.0\.1'
+      replace: 'bindIp 0.0.0.0'
+
+    - name: Restart service
+      ansible.builtin.service:
+        name: mongod
+        state: restarted
