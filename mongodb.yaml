@@ -1,6 +1,6 @@
 - name: install and configure mongodo server
   hosts: mongodb
-  #become: yes
+  become: yes
 
   tasks:
     - name: setup mongo repo
