@@ -1,6 +1,5 @@
 - name: install and configure redis
   hosts: redis
-  become: yes
 
   tasks:
     - name: disable default redis app stream
