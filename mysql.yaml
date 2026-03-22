@@ -1,0 +1,25 @@
+- name: install and configure mysql
+  hosts: mysql
+  become: yes
+
+  tasks:
+    - name: install mysql
+      ansible.builtin.dnf:
+        name: mysql-server
+        state: present
+
+    - name: enable and start mysql service
+      ansible.builtin.service:
+        name: mysqld
+        enable: true
+        state: started
+
+    - name: Check if root login without password works
+      ansible.builtin.command: mysql -u root -e "SELECT 1"
+      register: mysql_check
+      ignore_errors: yes
+
+    - name: Set MySQL root password
+      ansible.builtin.command: >
+        mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'RoboShop@1'; FLUSH PRIVILEGES;"
+      when: mysql_check.rc == 0
