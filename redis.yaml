@@ -18,11 +18,11 @@
         name: redis
         state: present
 
-    - name: allow connections from all hosts
-       ansible.builtin.lineinfile:
-        path: /etc/redis/redis.conf
-        regex: '^bind\s+127\.0\.0\.1'
-        replace: 'bind 0.0.0.0'
+    - name: Allow Connections From All Hosts
+      ansible.builtin.lineinfile:
+        path: etc/redis/redis.conf
+        regex: ^bind\s+127\.0\.0\.1'
+        line: 'bind 0.0.0.0'
 
     - name: enable and start the redis service
       ansible.builtin.service:
