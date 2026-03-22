@@ -37,19 +37,13 @@
       delay: 5
       until: rabbitmq_status.rc == 0
 
-    - name: create a rabbitmq user
-      community.rabbitmq.rabbitmq_user:
-        user: roboshop
-        password: roboshop123
-        permissions:
-          - vhost: /
-            configure_priv: .*
-            read_priv: .*
-            write_priv: .*
-        state: present
-      environment:
-        PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-      
+    - name: create rabbitmq user
+      ansible.builtin.command: rabbitmqctl add_user roboshop roboshop123
+
+    - name: set permissions to roboshop user
+      ansible.builtin.command: rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*"
+
+
     - name: list RabbitMQ users
       ansible.builtin.command: rabbitmqctl list_users
       register: rabbit_users
