@@ -11,7 +11,7 @@
     - name: enable and start mysql service
       ansible.builtin.service:
         name: mysqld
-        enable: true
+        enabled: true
         state: started
 
     - name: Check if root login without password works
