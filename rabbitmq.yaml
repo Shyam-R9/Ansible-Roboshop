@@ -47,6 +47,8 @@
             read_priv: .*
             write_priv: .*
         state: present
+      environment:
+        PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
       
     - name: list RabbitMQ users
       ansible.builtin.command: rabbitmqctl list_users
