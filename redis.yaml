@@ -3,15 +3,11 @@
 
   tasks:
     - name: disable default redis app stream
-      ansible.builtin.dnf:
-        name: redis
-        state: disabled
+      ansible.builtin.command: dnf module disable redis -y
 
     - name: enable redis 7
-      ansible.builtin.dnf:
-        name: redis:7
-        state: enabled
-
+      ansible.builtin.command: dnf module enable redis:7 -y
+ 
     - name: install redis
       ansible.builtin.dnf:
         name: redis
