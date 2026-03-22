@@ -3,6 +3,11 @@
   become: yes
 
   tasks:
+    - name: install dependencies
+      ansible.builtin.dnf:
+        name: erlang
+        state: present
+
     - name: copy rabbitmq repo file
       ansible.builtin.copy:
         src: rabbitmq.repo
@@ -19,6 +24,19 @@
         enabled: true
         state: started
 
+    - name: wait for Rabbitmq to be ready (port 5672 should be in listening state)
+      ansible.builtin.wait_for:
+        port: 5672
+        delay: 5
+        timeout: 60
+
+    - name: Wait for Rabbitmqcli to respond
+      ansible.builtin.command: rabbitmqctl status
+      register: rabbitmq_status
+      retries: 5
+      delay: 5
+      until: rabbitmq_status.rc == 0
+
     - name: create a rabbitmq user
       community.rabbitmq.rabbitmq_user:
         user: roboshop
@@ -34,5 +52,6 @@
       ansible.builtin.command: rabbitmqctl list_users
       register: rabbit_users
 
-    - debug:
+    - name: list rabbitmq users
+      ansible.builtin.debug:
         var: rabbit_users.stdout
