@@ -1,0 +1,36 @@
+- name: install and configure redis
+  hosts: redis
+  become: yes
+
+  tasks:
+    - name: disable default redis app stream
+      ansible.builtin.dnf:
+        name: redis
+        state: disabled
+
+    - name: enable redis 7
+      ansible.builtin.dnf:
+        name: redis:7
+        state: enabled
+
+    - name: install redis
+      ansible.builtin.dnf:
+        name: redis
+        state: present
+
+    - name: allow connections from all hosts
+       ansible.builtin.lineinfile:
+        path: /etc/redis/redis.conf
+        regex: '^bind\s+127\.0\.0\.1'
+        replace: 'bind 0.0.0.0'
+
+    - name: enable and start the redis service
+      ansible.builtin.service:
+        name: redis
+        enabled: true
+        state: started
+
+
+
+
+  
