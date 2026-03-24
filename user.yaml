@@ -57,7 +57,7 @@
         path: "{{ app_folder }}"
     
     - name: deploy systemd service file
-      ansible.built.template:
+      ansible.builtin.template:
         src: user.service.j2
         dest: /etc/systemd/system/user.service
       notify:
