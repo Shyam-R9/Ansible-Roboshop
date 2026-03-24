@@ -1,0 +1,95 @@
+- name: Install and configure user micro service
+  hosts: user
+  become: yes
+  vars:
+    app_user: roboshop
+    app_folder: /app
+    zip_url: https://roboshop-artifacts.s3.amazonaws.com/user-v3.zip
+    mongo_host: 192.168.146.137
+    redis_host: 192.168.146.144
+  
+  tasks:
+    - name: disable default nodejs app module
+      ansible.builtin.command: dnf module disable nodejs -y
+      changed_when: false
+
+    - name: enable nodejs 20 app module
+      ansible.builtin.command: dnf module enable nodejs:20 -y
+      changed_when: false
+
+    - name: install nodejs
+      ansible.builtin.dnf:
+        name: nodejs
+        state: present
+      
+    - name: create system user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        system: yes
+        home: "{{ app_folder }}"
+        create_home: yes
+        shell: /sbin/nologin
+        state: present
+
+    - name: create app directory
+      ansible.builtin.file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ app_user}}"
+        group: "{{app_user}}"
+        mode: '0755'
+
+    - name: download user.zip file
+      ansible.builtin.get_url:
+        url: "{{ zip_url }}"
+        dest: /tmp/user.zip
+        mode: '0644'
+
+    - name: unzip user.zip file
+      ansible.builtin.unarchive:
+      src: /tmp/user.zip
+      dest: "{{ app_folder }}"
+      remote_src: yes
+      creates: "{{ app_folder}}/package.json"
+
+    - name: install npm dependencies
+      community.general.npm:
+        path: "{{ app_folder }}"
+    
+    - name: deploy systemd service file
+      ansible.built.template:
+        src: user.service.j2
+        dest: /etc/systemd/system/user.service
+      notify:
+        Reload systemd
+        Restart service
+        
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+    
+    - name: Restart service
+      ansible.builtin.service:
+        name: user
+        state: restarted
+        enabled: true
+
+
+
+
+
+
+      
+
+  
+
+
+    
+       
+
+
+
+
+
+    
