@@ -67,9 +67,9 @@
       ansible.builtin.copy:
         src: catalogue.service     
         dest: /etc/systemd/system/catalogue.service
-        notify:
-          - Reload systemd
-          - Restart catalogue
+      notify:
+        - Reload systemd
+        - Restart catalogue
 
     - name: copy mongodb repo file 
       ansible.builtin.copy:
@@ -109,4 +109,3 @@
         name: catalogue
         state: restarted
         enabled: true
-        
