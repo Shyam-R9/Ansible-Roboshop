@@ -1,0 +1,95 @@
+- name: Deploy and configure Cart Micro service
+  hosts: cart
+  become: yes
+  vars:
+    app_user: roboshop
+    app_directory: /app
+    zip_url: https://roboshop-artifacts.s3.amazonaws.com/cart-v3.zip
+    redis_host: 192.168.146.144
+    catalogue_host: 192.168.146.148
+
+  tasks:
+    - name: disable default nodejs module
+      ansible.builtin.command: dnf module disable nodejs -y
+      change_when: false
+  
+    - name: enable nodejs 20 module
+      ansible.builtin.command: dnf module enable nodejs:20 -y
+      change_when: false
+
+    - name: install nodejs 20
+      ansible.builtin.dnf:
+        name: nodejs
+        state: present
+
+    - name: create roboshop system user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        system: true
+        home: "{{ app_directory }}"
+        create_home: yes
+        shell: /sbin/nologin
+        state: present
+
+    - name: create app directory
+      ansible.builtin.file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: download the cart.zip file
+      ansible.builtin.url_download:
+        url: "{{ zip_url }}"
+        dest: /tmp/cart.zip
+        mode: '0644'
+
+    - name: extract the zip file
+      ansible.builtin.unarchive:
+        src: /tmp/cart.zip
+        dest: "{{ app_directory }}"
+        remote_src: yes
+        creates: "{{ app_directory}}/package.json"
+
+    - name: install npm dependencies
+      community.general.npm:
+        path: "{{ app_directory }}"
+
+    - name: deploy systemd service file
+      ansible.builtin.template:
+        src: cart.service.j2
+        dest:  /etc/systemd/system/cart.service
+      notify:
+        - Reload serviced
+        - Restart service
+
+  -handlers:
+    - name: Reload serviced
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Restart service
+      ansible.builtin.service:
+        name: cart
+        start: restarted
+        state: enabled
+
+    
+
+    
+
+
+
+    
+
+
+
+    
+
+
+
+
+      
+    
+  
