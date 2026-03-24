@@ -9,10 +9,8 @@
 
   tasks:
     - name: Disable default nodejs app stream
-      ansible.builtin.dnf:
-        name: nodejs
-        state: absent
-        disable_module: true
+      ansible.builtin.command: dnf module disable nodejs -y
+      changed_when: false
         
     - name: Enable nodejs 20 
       ansible.builtin.command: dnf module enable nodejs:20 -y
