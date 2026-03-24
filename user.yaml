@@ -3,7 +3,7 @@
   become: yes
   vars:
     app_user: roboshop
-    app_folder: /app
+    app_directory: /app
     zip_url: https://roboshop-artifacts.s3.amazonaws.com/user-v3.zip
     mongo_host: 192.168.146.137
     redis_host: 192.168.146.144
@@ -26,7 +26,7 @@
       ansible.builtin.user:
         name: "{{ app_user }}"
         system: yes
-        home: "{{ app_folder }}"
+        home: "{{ app_directory }}"
         create_home: yes
         shell: /sbin/nologin
         state: present
@@ -48,13 +48,13 @@
     - name: unzip user.zip file
       ansible.builtin.unarchive:
         src: /tmp/user.zip
-        dest: "{{ app_folder }}"
+        dest: "{{ app_directory }}"
         remote_src: yes
-        creates: "{{ app_folder}}/package.json"
+        creates: "{{ app_directory}}/package.json"
 
     - name: install npm dependencies
       community.general.npm:
-        path: "{{ app_folder }}"
+        path: "{{ app_directory }}"
     
     - name: deploy systemd service file
       ansible.builtin.template:
