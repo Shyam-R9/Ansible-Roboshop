@@ -55,7 +55,7 @@
       ansible.builtin.file:
         path: "{{ app_dir }}"
         owner: "{{ app_user }}"
-        group: " {{ app_user }}"
+        group: "{{ app_user }}"
         recurse: yes
 
     - name: install npm dependencies
@@ -109,3 +109,4 @@
         name: catalogue
         state: restarted
         enabled: true
+        
