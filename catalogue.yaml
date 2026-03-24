@@ -42,7 +42,7 @@
 
     - name: Download catalogue.zip file
       ansible.builtin.get_url:
-        url: "{{ zzip_url }}" 
+        url: "{{ zip_url }}" 
         dest: /tmp/catalogue.zip
         mode: '0644'
 
@@ -57,13 +57,13 @@
       ansible.builtin.file:
         path: "{{ app_dir }}"
         owner: "{{ app_user }}"
-        group: " {{ aapp_user }}"
+        group: " {{ app_user }}"
         recurse: yes
 
     - name: install npm dependencies
       community.general.npm:
         path: "{{ app_dir }}"
-        production: true
+        #production: true
         
     - name: copy systemd service file 
       ansible.builtin.copy:
@@ -97,7 +97,7 @@
     
     - name: Load Master Data to Mongodb
       ansible.builtin.shell: >
-        mongosh --host 192.168.146.137 </app/db/master-data.js
+        mongosh --host {{ mongo_host }} </app/db/master-data.js
       when: catalogue_db_check.stdout | int == 0
 
   handlers:
