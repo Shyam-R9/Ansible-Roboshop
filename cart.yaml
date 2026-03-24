@@ -11,7 +11,7 @@
   tasks:
     - name: disable default nodejs module
       ansible.builtin.command: dnf module disable nodejs -y
-      change_when: false
+      changed_when: false
   
     - name: enable nodejs 20 module
       ansible.builtin.command: dnf module enable nodejs:20 -y
@@ -40,7 +40,7 @@
         mode: '0755'
 
     - name: download the cart.zip file
-      ansible.builtin.url_download:
+      ansible.builtin.get_url:
         url: "{{ zip_url }}"
         dest: /tmp/cart.zip
         mode: '0644'
@@ -61,19 +61,19 @@
         src: cart.service.j2
         dest:  /etc/systemd/system/cart.service
       notify:
-        - Reload serviced
+        - Reload systemd
         - Restart service
 
-  -handlers:
-    - name: Reload serviced
+  handlers:
+    - name: Reload systemd
       ansible.builtin.systemd_service:
         daemon_reload: true
 
     - name: Restart service
       ansible.builtin.service:
         name: cart
-        start: restarted
-        state: enabled
+        state: started
+        enabled: yes
 
     
 
