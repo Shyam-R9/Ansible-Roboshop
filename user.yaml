@@ -47,10 +47,10 @@
 
     - name: unzip user.zip file
       ansible.builtin.unarchive:
-      src: /tmp/user.zip
-      dest: "{{ app_folder }}"
-      remote_src: yes
-      creates: "{{ app_folder}}/package.json"
+        src: /tmp/user.zip
+        dest: "{{ app_folder }}"
+        remote_src: yes
+        creates: "{{ app_folder}}/package.json"
 
     - name: install npm dependencies
       community.general.npm:
