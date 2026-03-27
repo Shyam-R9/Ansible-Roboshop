@@ -80,26 +80,26 @@
         - name: Create DB and Database Schema
           community.mysql.mysql_db:
             state: import
-          target: /app/db/schema.sql
-          login_host: "{{ mysql_host }}"
-          login_user: root
-          login_password: "{{ mysqlroot_pwd }}"
+            target: /app/db/schema.sql
+            login_host: "{{ mysql_host }}"
+            login_user: root
+            login_password: "{{ mysqlroot_pwd }}"
 
         - name: Create user
           community.mysql.mysql_db:
             state: import
-          target: /app/db/app-user.sql
-          login_host: "{{ mysql_host }}"
-          login_user: root
-          login_password: "{{ mysqlroot_pwd }}"
+            target: /app/db/app-user.sql
+            login_host: "{{ mysql_host }}"
+            login_user: root
+            login_password: "{{ mysqlroot_pwd }}"
 
         - name: Load master data
           community.mysql.mysql_db:
             state: import
-          target: /app/db/master-data.sql
-          login_host: "{{ mysql_host }}"
-          login_user: root
-          login_password: "{{ mysqlroot_pwd }}"
+            target: /app/db/master-data.sql
+            login_host: "{{ mysql_host }}"
+            login_user: root
+            login_password: "{{ mysqlroot_pwd }}"
 
         - name: Create file to mark db activities complete
           ansible.builtin.file:
