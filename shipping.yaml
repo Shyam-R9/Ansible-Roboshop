@@ -79,6 +79,7 @@
       block:
         - name: Create DB and Database Schema
           community.mysql.mysql_db:
+            name: cities
             state: import
             target: /app/db/schema.sql
             login_host: "{{ mysql_host }}"
@@ -87,6 +88,7 @@
 
         - name: Create user
           community.mysql.mysql_db:
+            name: cities
             state: import
             target: /app/db/app-user.sql
             login_host: "{{ mysql_host }}"
@@ -95,6 +97,7 @@
 
         - name: Load master data
           community.mysql.mysql_db:
+            name: cities
             state: import
             target: /app/db/master-data.sql
             login_host: "{{ mysql_host }}"
