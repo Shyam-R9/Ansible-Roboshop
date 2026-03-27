@@ -112,7 +112,7 @@
   handlers:
     - name: Reload Systemd
       ansible.builtin.systemd_service:
-        reload_daemon: yes
+        daemon_reload: yes
       
     - name: Restart service
       ansible.builtin.service:
