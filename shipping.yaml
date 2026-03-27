@@ -1,0 +1,117 @@
+- name: install and configure shipping micro service
+  hosts: shipping
+  become: yes
+  vars:
+    app_user: roboshop
+    app_directory: /app
+    zip_url: https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip
+    cart_host: "192.168.146.150"
+    mysql_host: "192.168.146.138"
+    mysqlroot_pwd: "RoboShop@1"
+
+  tasks:
+    - name: install packages
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - maven # jave build tool
+        - mysql # mysql client and cli tools 
+        - python3-PyMySQL # python dependencies
+
+
+    - name: create system user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        system: true
+        home: "{{ app_directory}}"
+        create_home: yes
+        shell: /sbin/nologin
+        state: present
+
+    - name: create app directory
+      ansible.builtin.file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+    
+    - name: download the shipping.zip file
+      ansible.builtin.get_url:
+        url: "{{ zip_url }}"
+        dest: /tmp/shipping.zip
+        mode: '0644'
+
+    - name: extract the shipping.zip file
+      ansible.builtin.unarchive:
+        src: /tmp/shipping.zip
+        dest: "{{ app_directory }}"
+        remote_src: yes
+        creates: "{{ app_directory}}/pom.xml"
+
+    - name: Download the dependencies & build the application
+      ansible.builtin.command: mvn clean package
+      args:
+        chdir: "{{ app_directory }}"
+
+    - name: Rename the package same as in the Shipping serviced file
+      ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar
+      args:
+        chdir: "{{ app_directory }}"
+
+    - name: Deploy systemd service file        
+      ansible.builtin.template:
+        src: shipping.service.j2
+        dest: /etc/systemd/system/shipping.service
+      notify:
+        - Reload Systemd   
+        - Restart service
+
+########### Preparing the db ############
+    - name: if .db_initialized file doesn't exists, continue DB setup moudules
+      ansible.builtin.stat:
+        path: /app/.db_initialized
+      register: db_flag
+
+    - name: Initialize MySql database
+      when: not db_flag.stat.exists
+      block:
+        - name: Create DB and Database Schema
+          community.mysql.mysql_db:
+          state: import
+          target: /app/db/schema.sql
+          login_host: "{{ mysql_host }}"
+          login_user: root
+          login_password: "{{ mysqlroot_pwd }}"
+
+        - name: Create user
+          community.mysql.mysql_db:
+          state: import
+          target: /app/db/app-user.sql
+          login_host: "{{ mysql_host }}"
+          login_user: root
+          login_password: "{{ mysqlroot_pwd }}"
+
+        - name: Load master data
+          community.mysql.mysql_db:
+          target: /app/db/master-data.sql
+          login_host: "{{ mysql_host }}"
+          login_user: root
+          login_password: "{{ mysqlroot_pwd }}"
+
+        - name: Create file to mark db activities complete
+          ansible.builtin.file:
+            path: /app/.db_initialized
+            state: touch
+
+  handlers:
+    - name: Reload Systemd
+      ansible.builtin.systemd_service:
+        reload_daemon: yes
+      
+    - name: Restart service
+      ansible.builtin.service:
+        name: shipping
+        enabled: true
+        state: restarted
