@@ -46,8 +46,8 @@
       ansible.builtin.command: go mod init dispatch
       args:
         chdir: "{{ app_directory }}"
-      ignore_errors: yes
-
+        creates: "{{ app_directory }}/go.mod"
+  
     - name: download go dependencies
       ansible.builtin.command: go get
       args:
