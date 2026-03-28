@@ -1,0 +1,62 @@
+- name: install and configure frontend micro service
+  hosts: frontend
+  become: yes
+  tasks:
+    - name: disable default nginx download stream
+      ansible.builtin.command: dnf module disable nginx -y
+      changed_when: false
+
+    - name: enable nginx version 1.24 download stream
+      ansible.builtin.command: dnf module enable nginx:1.24 -y
+      changed_when: false
+
+    - name: install nginx
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
+      notify: restart nginx
+
+    - name: remove default content
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: absent
+
+    - name: recreate web directory
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: download the frontend.zip file
+      ansible.builtin.get_url:
+        url: https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip
+        dest: /tmp/frontend.zip
+        creates: /tmp/frontend.zip
+
+    - name: extract the zip file
+      ansible.builtin.unarchive:
+        src: /tmp/frontend.zip
+        remote_src: yes
+        dest: /usr/share/nginx/html
+
+    - name: copy nginx reverse proxy config
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+      notify: restart service
+
+    - name: ensure nginx running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    - name: restart service
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+        enabled: true
+  
