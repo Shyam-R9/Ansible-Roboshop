@@ -14,7 +14,7 @@
       ansible.builtin.dnf:
         name: nginx
         state: present
-      notify: restart nginx
+      notify: restart service
 
     - name: remove default content
       ansible.builtin.file:
