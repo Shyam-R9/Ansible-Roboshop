@@ -1,0 +1,81 @@
+- name: Install and configure payment micro service
+  hosts: payment
+  become: yes
+  vars:
+    app_user: roboshop
+    app_directory: /app
+    zip_url: https://roboshop-artifacts.s3.amazonaws.com/payment-v3.zip
+    cart_host: "192.168.146.150"
+    user_host: "192.168.146.149"
+    rabbitmq_host: "192.168.146.143"
+
+  tasks:
+    - name: install python 3
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - python3
+        - gcc
+        - python3-devel
+    
+    - name: create system user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        system: true
+        shell: /sbin/nologin
+        home: "{{ app_directory }}"
+        create_home: yes
+
+    - name: create app directory
+      ansible.builtin.file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: download payment.zip file
+      ansible.builtin.get_url:
+        src: "{{ zip_url }}"
+        dest: /tmp/payment.zip
+        mode: '0644'
+
+    - name: extract payment.zip file
+      ansible.builtin.unarchive:
+        src: /tmp/payment.zip
+        remote_src: yes
+        dest: "{{ app_directory }}"
+        creates: "{{ app_directory}}/requirements.txt"
+    
+    - name: download the dependencies
+      ansible.builtin.pip:
+        executable: python3
+        requirements: "{{ app_directory }}/requirements.txt"
+
+    - name: deploy systemd file
+      ansible.builtin.template:
+        src: payment.service.j2
+        dest: /etc/systemd/system/payment.service
+      notify:
+        - Reload systemd
+        - Restart service
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Restart service
+      ansible.builtin.service:
+        name: payment
+        enabled: true
+        state: restarted
+
+
+
+
+        
+
+
+
