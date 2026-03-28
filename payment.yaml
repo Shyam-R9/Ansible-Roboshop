@@ -37,7 +37,7 @@
 
     - name: download payment.zip file
       ansible.builtin.get_url:
-        src: "{{ zip_url }}"
+        url: "{{ zip_url }}"
         dest: /tmp/payment.zip
         mode: '0644'
 
